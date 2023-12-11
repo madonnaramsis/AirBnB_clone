@@ -14,12 +14,6 @@ from models.place import Place
 from models.review import Review
 
 
-def test(string: str):
-    print(type(string))
-    string = string.split(" ")
-    print(string[-1].replace('"', ""))
-
-
 class HBNBCommand(cmd.Cmd):
     prompt = "(hbnb) "
     __classes = {
@@ -132,8 +126,10 @@ class HBNBCommand(cmd.Cmd):
             print("** class name missing **")
             return False
         argv = arg.split(" ")
-        argv[1] = argv[1].replace(",", "")
-        argv[2] = argv[2].replace(",", "")
+        if re.match(r".+,$", argv[1]):
+            argv[1] = argv[1].replace(",", "")
+        if re.match(r".+,$", argv[2]):
+            argv[2] = argv[2].replace(",", "")
         objs = storage.all()
         obj = {}
         if argv[0] not in HBNBCommand.__classes.keys():
