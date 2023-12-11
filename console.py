@@ -112,9 +112,10 @@ class HBNBCommand(cmd.Cmd):
             for value in objs.values():
                 objs_list.append(str(value))
         else:
-            if arg in HBNBCommand.__classes.keys():
+            argv = arg.split(" ")
+            if argv[0] in HBNBCommand.__classes.keys():
                 for key in objs.keys():
-                    if re.match(f"{arg}\\..+", key):
+                    if re.match(f"{argv[0]}\\..+", key):
                         objs_list.append(str(objs[key]))
             else:
                 print("** class doesn't exist **")
@@ -131,6 +132,8 @@ class HBNBCommand(cmd.Cmd):
             print("** class name missing **")
             return False
         argv = arg.split(" ")
+        argv[1] = argv[1].replace(",", "")
+        argv[2] = argv[2].replace(",", "")
         objs = storage.all()
         obj = {}
         if argv[0] not in HBNBCommand.__classes.keys():
@@ -160,6 +163,39 @@ class HBNBCommand(cmd.Cmd):
             obj.__dict__[argv[2]] = argv[3]
         storage.save()
         storage.reload()
+
+    def do_count(self, arg):
+        """
+        Usage: count <class> or <class>.count()
+        Retrieve the number of instances of a given class
+        """
+        argv = arg.split(" ")
+        count = 0
+        for obj in storage.all().values():
+            if argv[0] == obj.__class__.__name__:
+                count += 1
+        print(count)
+
+    def default(self, arg):
+        """Default behavior for cmd module when input is invalid"""
+        argdict = {
+            "all": self.do_all,
+            "show": self.do_show,
+            "destroy": self.do_destroy,
+            "count": self.do_count,
+            "update": self.do_update,
+        }
+        match = re.search(r"\.", arg)
+        if match is not None:
+            argl = [arg[: match.span()[0]], arg[match.span()[1]:]]
+            match = re.search(r"\((.*?)\)", argl[1])
+            if match is not None:
+                command = [argl[1][: match.span()[0]], match.group()[1:-1]]
+                if command[0] in argdict.keys():
+                    call = "{} {}".format(argl[0], command[1])
+                    return argdict[command[0]](call)
+        print("*** Unknown syntax: {}".format(arg))
+        return False
 
 
 if __name__ == "__main__":
